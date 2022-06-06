@@ -5,7 +5,7 @@ from jose import JWTError, jwt
 
 from ..settings import JWT_SECRET_KEY
 from ..schemas.user import TokenData, User
-from ..storage.mapper import get_user, fake_users_db
+from ..storage.mapper import MAPPER
 
 ALGORITHM = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -24,7 +24,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
+    user = MAPPER.get_user(username=token_data.username)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

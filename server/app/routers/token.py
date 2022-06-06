@@ -8,7 +8,7 @@ from passlib.context import CryptContext
 
 from ..settings import JWT_SECRET_KEY
 from ..schemas.user import Token
-from ..storage.mapper import get_user, fake_users_db
+from ..storage.mapper import MAPPER
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -23,8 +23,8 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(username: str, password: str):
+    user = MAPPER.get_user(username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -43,7 +43,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 @router.post("/token", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
